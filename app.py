@@ -15,7 +15,6 @@ def shelf_letters(n: int) -> list:
     letters = []
     i = 0
     while len(letters) < n:
-        # Excel-style column names starting at A=1
         value = i + 1
         name = ""
         while value > 0:
@@ -45,28 +44,19 @@ def build_labels_uniform(num_aisles: int, bays_per_aisle: int, shelves_per_bay: 
 
 
 def build_labels_from_csv(df_cfg: pd.DataFrame) -> pd.DataFrame:
-    """
-    Build labels from a configuration DataFrame with columns:
-      - aisle (int)
-      - bay (int)
-      - shelves (int)  # number of shelves in this bay
-      - bins (int)     # number of bins per shelf in this bay
-    Each row defines one bay's structure.
-    """
     required = {"aisle", "bay", "shelves", "bins"}
     missing = required - set(c.lower() for c in df_cfg.columns)
     if missing:
         raise ValueError(f"CSV missing columns: {', '.join(sorted(missing))}")
 
-    # Normalize columns to lowercase
     df_cfg = df_cfg.rename(columns={c: c.lower() for c in df_cfg.columns})
 
     rows = []
     for _, r in df_cfg.sort_values(["aisle", "bay"]).iterrows():
-        a = int(r["aisle"])   # aisle number
-        b = int(r["bay"])     # bay number within the aisle
+        a = int(r["aisle"])
+        b = int(r["bay"])
         shelves = shelf_letters(int(r["shelves"]))
-        bins_per_shelf = int(r["bins"])  # uniform across shelves for this bay
+        bins_per_shelf = int(r["bins"])
         for s in shelves:
             for n in range(1, bins_per_shelf + 1):
                 label = f"M{a:02d}-{b:02d}-{s}{n:02d}"
@@ -88,9 +78,8 @@ def to_csv_download(df: pd.DataFrame, filename: str = "bin_labels.csv"):
         data=buf.getvalue(),
         file_name=filename,
         mime="text/csv",
-        use_container_width=True,
+        use_container_width=True
     )
-
 
 # -----------------------------
 # UI
@@ -120,14 +109,15 @@ if mode == "Uniform counts":
 else:
     st.markdown(
         "Upload a CSV with columns: **aisle, bay, shelves, bins**.\n\n"
-        "Each row describes a single bay (its aisle number, bay number, how many shelves it has, and how many bins per shelf).\n\n"
-        "Example rows:**\n\n"
-        "```
-        aisle,bay,shelves,bins
-        1,1,4,10
-        1,2,3,8
-        2,1,5,12
-        ```"
+        "Each row describes a single bay (its aisle number, bay number, how many shelves it has, "
+        "and how many bins per shelf).\n\n"
+        "Example rows:\n\n"
+        "```\n"
+        "aisle,bay,shelves,bins\n"
+        "1,1,4,10\n"
+        "1,2,3,8\n"
+        "2,1,5,12\n"
+        "```"
     )
 
     up = st.file_uploader("Choose CSV file", type=["csv"])
